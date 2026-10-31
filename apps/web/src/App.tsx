@@ -36,6 +36,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { api } from './api';
+import { createCheckoutKey } from './checkout-key';
 import {
   money,
   type User,
@@ -941,7 +942,7 @@ function Checkout() {
   const [busy, setBusy] = useState(false);
   const nav = useNavigate();
   const [key, setKey] = useState(
-    () => sessionStorage.getItem('checkoutKey') ?? crypto.randomUUID(),
+    () => sessionStorage.getItem('checkoutKey') ?? createCheckoutKey(),
   );
   useEffect(() => {
     api<Quote>('/checkout/quote', 'POST', { coupon: applied || undefined })
@@ -952,7 +953,7 @@ function Checkout() {
     if (addresses.data?.length && !addressId) setAddress(addresses.data[0].id);
   }, [addresses.data, addressId]);
   const invalidate = () => {
-    const next = crypto.randomUUID();
+    const next = createCheckoutKey();
     sessionStorage.removeItem('checkoutKey');
     setKey(next);
   };

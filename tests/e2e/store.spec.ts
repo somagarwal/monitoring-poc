@@ -37,7 +37,12 @@ test('shopper completes a purchase and reads order tracking and notification', a
   await page.getByRole('link', { name: /Continue to checkout/ }).click();
   await page.getByLabel('Coupon code').fill('WELCOME10');
   await page.getByRole('button', { name: 'Apply', exact: true }).click();
-  await expect(page.getByText('−$1.50')).toBeVisible();
+  const product = await (await page.request.get('/api/v1/products/product-1')).json();
+  const expectedDiscount = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(Math.floor(product.price * 0.1) / 100);
+  await expect(page.getByText(`−${expectedDiscount}`)).toBeVisible();
   await page.getByRole('button', { name: /Place demo order/ }).click();
   await expect(page).toHaveURL(/\/confirmation\//);
   await page.getByRole('link', { name: 'View your order' }).click();
@@ -78,16 +83,26 @@ test('wishlist, profile, address and review flows', async ({ page }) => {
   await page.getByRole('button', { name: 'Save changes' }).click();
   await expect(page.getByRole('status')).toContainText('profile is updated');
   await page.goto('/addresses');
-  await page.getByLabel('Full name').fill('Test address');
+  const addressName = `Test address ${Date.now()}`;
+  await page.getByLabel('Full name').fill(addressName);
   await page.getByLabel('Street address').fill('5 Test Street');
   await page.getByLabel('City', { exact: true }).fill('Portland');
   await page.getByLabel('Postal code').fill('97201');
   await page.getByRole('button', { name: 'Save address' }).click();
-  await expect(page.getByText('Test address', { exact: true })).toBeVisible();
+  await expect(page.getByText(addressName, { exact: true })).toBeVisible();
+  await page
+    .locator('.address-card')
+    .filter({ hasText: addressName })
+    .getByRole('button', { name: 'Remove address' })
+    .click();
+  await expect(page.getByText(addressName, { exact: true })).toHaveCount(0);
   await page.goto('/products/product-1');
   await page.getByLabel('Your review').fill('Useful and lovely');
   await page.getByRole('button', { name: 'Post review' }).click();
-  await expect(page.getByText('Useful and lovely', { exact: true })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('Thank you for your review');
+  await expect(
+    page.locator('.reviews article').getByText('Useful and lovely', { exact: true }),
+  ).toBeVisible();
 });
 test('admin edits stock and product pricing, advances shipping and sees audit', async ({
   page,
@@ -119,4 +134,24 @@ test('mobile layout stays within viewport', async ({ page }) => {
   await page.getByRole('button', { name: 'Toggle navigation' }).click();
   await expect(page.getByRole('link', { name: 'Shop all', exact: true })).toBeVisible();
   await page.screenshot({ path: 'test-results/mobile-home.png', fullPage: true });
+});
+
+test('checkout works when randomUUID is unavailable on plain HTTP LAN origins', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window.crypto, 'randomUUID', { value: undefined, configurable: true });
+  });
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await login(page);
+  await clearCart(page);
+  await page.request.put('/api/v1/cart/items/product-2', { data: { quantity: 1 } });
+  await page.goto('/checkout');
+  await expect(page.getByRole('heading', { name: 'Make it yours.' })).toBeVisible();
+  await page.getByLabel('Payment outcome').selectOption('decline');
+  await page.getByLabel('Payment outcome').selectOption('approve');
+  await page.getByRole('button', { name: /Place demo order/ }).click();
+  await expect(page).toHaveURL(/\/confirmation\//);
+  expect(errors).toEqual([]);
 });

@@ -149,3 +149,17 @@ This deletes the local `little-market` namespace and its stored data, then deplo
 The manifests are portable Kubernetes resources, but the deployment script targets kind. For another cluster, publish the two images to your registry, replace image references, supply Secrets, choose a StorageClass, and run migration/seed Jobs before rollout. Cloud ingress, TLS, high availability, external integrations, and production hardening are outside this test build.
 
 See [recorded verification results](docs/verification.md) for the checks completed during the initial build and this workspace's running URL.
+
+### Share with another device on the same Wi-Fi
+
+Use your Mac's current LAN IP (on macOS, `ipconfig getifaddr en0`). Keep this command running, replacing the example IP if it changes:
+
+```bash
+KUBECONFIG=.local/kubeconfig kubectl --context kind-little-market \
+  -n little-market port-forward --address 127.0.0.1,192.168.1.105 \
+  service/frontend 8180:8080
+```
+
+Open **http://192.168.1.105:8180/** on the other device, using HTTP. The same address serves the UI, static assets, and API. If the port is already in use by an existing frontend port-forward, use that running forward rather than starting a duplicate. A frontend pod rollout requires restarting the port-forward.
+
+Checkout supports plain-HTTP LAN origins: it uses cryptographic `getRandomValues` when the browser does not expose the secure-context-only `randomUUID` API. If an old checkout page stays blank after updating, refresh it to load the new frontend bundle. For connection errors before the page loads, check macOS Firewall, VPN settings, and Wi-Fi client isolation.
