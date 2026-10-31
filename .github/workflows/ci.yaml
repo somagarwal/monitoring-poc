@@ -1,0 +1,53 @@
+name: Validate Little Market
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: market_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test-postgres-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d market_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://postgres:test-postgres-password@localhost:5432/market_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '24', cache: npm }
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm run test:coverage
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - run: docker build -t little-market-api:ci -f apps/api/Dockerfile .
+      - run: docker build -t little-market-web:ci -f apps/web/Dockerfile .
+      - run: kubectl kustomize deploy/local > /tmp/manifests.yaml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-artifacts
+          path: |
+            coverage/
+            test-results/
+  kubernetes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '24' }
+      - uses: helm/kind-action@v1
+        with:
+          install_only: true
+      - run: bash scripts/deploy.sh
+      - run: bash scripts/k8s-smoke.sh

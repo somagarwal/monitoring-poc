@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata: { name: market-seed, namespace: little-market }
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      containers:
+        - name: seed
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          command: [node, dist/scripts/seed.js]
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: market-secrets, key: POSTGRES_PASSWORD } }
+            - {
+                name: DATABASE_URL,
+                value: 'postgres://postgres:$(POSTGRES_PASSWORD)@postgres:5432/market',
+              }

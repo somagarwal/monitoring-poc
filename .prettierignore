@@ -1,0 +1,9 @@
+node_modules
+dist
+apps/web/dist
+coverage
+.local
+package-lock.json
+test-results
+playwright-report
+deploy/base/services.yaml

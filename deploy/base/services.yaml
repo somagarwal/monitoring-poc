@@ -1,0 +1,980 @@
+---
+apiVersion: v1
+kind: Service
+metadata: {name: gateway}
+spec:
+  selector: {app: gateway}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: gateway}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: gateway}
+  template:
+    metadata:
+      labels: {app: gateway}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: gateway
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: gateway}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_gateway:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: auth}
+spec:
+  selector: {app: auth}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: auth}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: auth}
+  template:
+    metadata:
+      labels: {app: auth}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: auth
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: auth}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_auth:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: profile}
+spec:
+  selector: {app: profile}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: profile}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: profile}
+  template:
+    metadata:
+      labels: {app: profile}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: profile
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: profile}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_profile:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: address}
+spec:
+  selector: {app: address}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: address}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: address}
+  template:
+    metadata:
+      labels: {app: address}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: address
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: address}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_address:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: catalog}
+spec:
+  selector: {app: catalog}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: catalog}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: catalog}
+  template:
+    metadata:
+      labels: {app: catalog}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: catalog
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: catalog}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_catalog:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: category}
+spec:
+  selector: {app: category}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: category}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: category}
+  template:
+    metadata:
+      labels: {app: category}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: category
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: category}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_category:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: search}
+spec:
+  selector: {app: search}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: search}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: search}
+  template:
+    metadata:
+      labels: {app: search}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: search
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: search}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_search:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: inventory}
+spec:
+  selector: {app: inventory}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: inventory}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: inventory}
+  template:
+    metadata:
+      labels: {app: inventory}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: inventory
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: inventory}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_inventory:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: pricing}
+spec:
+  selector: {app: pricing}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: pricing}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: pricing}
+  template:
+    metadata:
+      labels: {app: pricing}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: pricing
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: pricing}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_pricing:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: cart}
+spec:
+  selector: {app: cart}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: cart}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: cart}
+  template:
+    metadata:
+      labels: {app: cart}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: cart
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: cart}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_cart:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: wishlist}
+spec:
+  selector: {app: wishlist}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: wishlist}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: wishlist}
+  template:
+    metadata:
+      labels: {app: wishlist}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: wishlist
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: wishlist}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_wishlist:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: reviews}
+spec:
+  selector: {app: reviews}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: reviews}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: reviews}
+  template:
+    metadata:
+      labels: {app: reviews}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: reviews
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: reviews}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_reviews:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: promotions}
+spec:
+  selector: {app: promotions}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: promotions}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: promotions}
+  template:
+    metadata:
+      labels: {app: promotions}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: promotions
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: promotions}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_promotions:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: checkout}
+spec:
+  selector: {app: checkout}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: checkout}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: checkout}
+  template:
+    metadata:
+      labels: {app: checkout}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: checkout
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: checkout}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_checkout:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: orders}
+spec:
+  selector: {app: orders}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: orders}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: orders}
+  template:
+    metadata:
+      labels: {app: orders}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: orders
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: orders}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_orders:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: payments}
+spec:
+  selector: {app: payments}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: payments}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: payments}
+  template:
+    metadata:
+      labels: {app: payments}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: payments
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: payments}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_payments:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: shipping}
+spec:
+  selector: {app: shipping}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: shipping}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shipping}
+  template:
+    metadata:
+      labels: {app: shipping}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: shipping
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: shipping}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_shipping:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: notifications}
+spec:
+  selector: {app: notifications}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: notifications}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: notifications}
+  template:
+    metadata:
+      labels: {app: notifications}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: notifications
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: notifications}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_notifications:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: recommendations}
+spec:
+  selector: {app: recommendations}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: recommendations}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: recommendations}
+  template:
+    metadata:
+      labels: {app: recommendations}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: recommendations
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: recommendations}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_recommendations:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: audit}
+spec:
+  selector: {app: audit}
+  ports: [{port: 4000, targetPort: 4000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: audit}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: audit}
+  template:
+    metadata:
+      labels: {app: audit}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: audit
+          image: little-market-api:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVICE_NAME, value: audit}
+            - {name: PORT, value: '4000'}
+            - name: INTERNAL_TOKEN
+              valueFrom: {secretKeyRef: {name: market-secrets, key: INTERNAL_TOKEN}}
+            - name: DATABASE_PASSWORD
+              valueFrom: {secretKeyRef: {name: market-secrets, key: DATABASE_PASSWORD}}
+            - {name: DATABASE_URL, value: 'postgres://market_audit:$(DATABASE_PASSWORD)@postgres:5432/market'}
+          ports: [{containerPort: 4000}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health/live, port: 4000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 4000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: 4000}
+            periodSeconds: 10
